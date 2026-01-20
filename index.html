@@ -24,20 +24,18 @@
         
         /* 대시보드 카드 */
         .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: 0.3s; position: relative; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: 0.3s; }
         .card:hover { transform: translateY(-5px); }
         .card h3 { margin: 0; font-size: 14px; color: #868e96; text-transform: uppercase; }
         .card .value { font-size: 32px; font-weight: 800; margin: 15px 0 5px; color: #212529; }
         .card .site-tag { font-size: 12px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
         .tag-codet { background: #e7f5ff; color: #1971c2; }
         .tag-games { background: #fff4e6; color: #fd7e14; }
-        .tag-security { background: #ebfbee; color: #2b8a3e; }
 
         /* 히스토리 섹션 */
-        .history-box { margin-top: 30px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .history-item { font-size: 14px; color: #495057; border-left: 4px solid var(--primary); padding-left: 15px; }
-        .view-more { font-size: 12px; color: var(--primary); text-decoration: none; font-weight: bold; cursor: pointer; }
+        .history-section { margin-top: 30px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .history-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .history-item { font-size: 14px; border-left: 4px solid var(--primary); padding-left: 15px; color: #495057; }
 
         button.logout { background: #ff6b6b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: auto; }
     </style>
@@ -46,8 +44,8 @@
     <nav>
         <h2>codetbase</h2>
         <ul>
-            <li class="active">📊 통합 대시보드</li>
-            <li>🎮 코뎃 게임즈 관리</li>
+            <li class="active" onclick="location.href='index.html'">📊 통합 대시보드</li>
+            <li onclick="location.href='game.html'">🎮 코뎃 게임즈 관리</li>
             <li>👥 사용자 관리</li>
             <li>⚙️ 시스템 설정</li>
         </ul>
@@ -76,20 +74,18 @@
             </div>
 
             <div class="card">
-                <h3>보안 현황</h3>
-                <div class="value" id="security-status" style="color: #2b8a3e;">안전</div>
-                <span class="site-tag tag-security">실시간 보호 중</span>
+                <h3>보안 시스템 상태</h3>
+                <div class="value" style="color: #2b8a3e;">실시간 안전</div>
+                <span class="site-tag" style="background: #ebfbee; color: #2b8a3e;">SSL & RLS 활성</span>
             </div>
         </div>
 
-        <div class="history-box">
-            <div class="history-header">
-                <h3 style="margin:0; font-size: 16px;">최근 활동 히스토리</h3>
-                <a href="story.html" class="view-more">자세히 보기 ></a>
+        <div class="history-section">
+            <div class="history-title">
+                <h3 style="margin:0; font-size:16px;">최근 활동 히스토리</h3>
+                <a href="story.html" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:bold;">자세히 보기 ></a>
             </div>
-            <div id="recent-history" class="history-item">
-                데이터를 불러오는 중...
-            </div>
+            <div id="recent-history" class="history-item">활동 내역을 불러오는 중...</div>
         </div>
     </main>
 
@@ -112,7 +108,7 @@
 
             fetchCodetStats();
             fetchGameStats();
-            fetchRecentHistory();
+            fetchLastHistory();
         }
 
         async function fetchCodetStats() {
@@ -126,32 +122,15 @@
                 if (error) throw error;
                 document.getElementById('count-games').innerText = count.toLocaleString() + " 명";
             } catch (e) {
-                document.getElementById('count-games').innerText = "연결 오류";
+                document.getElementById('count-games').innerText = "연결 끊김";
             }
         }
 
-        // 마지막 로그인 또는 활동 히스토리 하나만 가져오기
-        async function fetchRecentHistory() {
-            try {
-                // 'profiles' 테이블에서 가장 최근에 업데이트된 사용자 1명 가져오기
-                const { data, error } = await _codet
-                    .from('profiles')
-                    .select('email, updated_at')
-                    .order('updated_at', { ascending: false })
-                    .limit(1);
-
-                if (error) throw error;
-
-                if (data && data.length > 0) {
-                    const lastUser = data[0];
-                    const date = new Date(lastUser.updated_at).toLocaleString('ko-KR');
-                    document.getElementById('recent-history').innerText = 
-                        `마지막 활동: ${lastUser.email}님이 ${date}에 접속하거나 정보를 수정했습니다.`;
-                } else {
-                    document.getElementById('recent-history').innerText = "기록된 활동이 없습니다.";
-                }
-            } catch (e) {
-                document.getElementById('recent-history').innerText = "히스토리 로드 실패";
+        async function fetchLastHistory() {
+            const { data } = await _codet.from('profiles').select('email, updated_at').order('updated_at', {ascending: false}).limit(1);
+            if(data && data[0]) {
+                const date = new Date(data[0].updated_at).toLocaleString();
+                document.getElementById('recent-history').innerText = `최근 활동: ${data[0].email}님이 ${date}에 마지막으로 활동함`;
             }
         }
 
