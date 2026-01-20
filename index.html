@@ -24,13 +24,20 @@
         
         /* 대시보드 카드 */
         .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: 0.3s; position: relative; }
         .card:hover { transform: translateY(-5px); }
         .card h3 { margin: 0; font-size: 14px; color: #868e96; text-transform: uppercase; }
         .card .value { font-size: 32px; font-weight: 800; margin: 15px 0 5px; color: #212529; }
         .card .site-tag { font-size: 12px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
         .tag-codet { background: #e7f5ff; color: #1971c2; }
         .tag-games { background: #fff4e6; color: #fd7e14; }
+        .tag-security { background: #ebfbee; color: #2b8a3e; }
+
+        /* 히스토리 섹션 */
+        .history-box { margin-top: 30px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .history-item { font-size: 14px; color: #495057; border-left: 4px solid var(--primary); padding-left: 15px; }
+        .view-more { font-size: 12px; color: var(--primary); text-decoration: none; font-weight: bold; cursor: pointer; }
 
         button.logout { background: #ff6b6b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: auto; }
     </style>
@@ -57,38 +64,45 @@
 
         <div class="card-grid">
             <div class="card">
-                <h3>Total Users</h3>
+                <h3>전체 사용자 (메인)</h3>
                 <div class="value" id="count-codet">0</div>
                 <span class="site-tag tag-codet">codetbase</span>
             </div>
 
             <div class="card">
-                <h3>Games Users</h3>
+                <h3>게임즈 사용자</h3>
                 <div class="value" id="count-games">0</div>
                 <span class="site-tag tag-games">업소드 게임즈</span>
             </div>
 
             <div class="card">
-                <h3>New Contents</h3>
-                <div class="value">24</div>
-                <span class="site-tag" style="background: #f1f3f5;">Today</span>
+                <h3>보안 현황</h3>
+                <div class="value" id="security-status" style="color: #2b8a3e;">안전</div>
+                <span class="site-tag tag-security">실시간 보호 중</span>
+            </div>
+        </div>
+
+        <div class="history-box">
+            <div class="history-header">
+                <h3 style="margin:0; font-size: 16px;">최근 활동 히스토리</h3>
+                <a href="story.html" class="view-more">자세히 보기 ></a>
+            </div>
+            <div id="recent-history" class="history-item">
+                데이터를 불러오는 중...
             </div>
         </div>
     </main>
 
     <script>
-        // 1. codetbase 설정
         const CODET_URL = "https://vmchoitkohbmbrsrnogo.supabase.co";
         const CODET_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtY2hvaXRrb2hibWJyc3Jub2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MjgxNTIsImV4cCI6MjA4MzUwNDE1Mn0.JYUwOlZgB3KzLArnwjrY_EMFA2UFGSOTtUFRdGwVUN8";
         const _codet = supabase.createClient(CODET_URL, CODET_KEY);
 
-        // 2. 코뎃 게임즈(업소드) 설정
         const GAME_URL = "https://utfrjzcnefsbuadnkdud.supabase.co";
         const GAME_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0ZnJqemNuZWZzYnVhZG5rZHVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4MjE1MTYsImV4cCI6MjA4MjM5NzUxNn0.D3Za1nMw-x0JwOpkFuYceUHlagcpRdrpFqNUIP5Kjdc";
         const _games = supabase.createClient(GAME_URL, GAME_KEY);
 
         async function init() {
-            // 세션 체크 (codetbase 기준으로 인증)
             const { data: { session } } = await _codet.auth.getSession();
             if (!session) {
                 location.replace('login.html');
@@ -96,27 +110,48 @@
             }
             document.getElementById('user-info').innerText = session.user.email;
 
-            // 데이터 가져오기
             fetchCodetStats();
             fetchGameStats();
+            fetchRecentHistory();
         }
 
-        // codetbase 회원수 조회
         async function fetchCodetStats() {
             const { count, error } = await _codet.from('profiles').select('*', { count: 'exact', head: true });
-            if (!error) document.getElementById('count-codet').innerText = count.toLocaleString();
+            if (!error) document.getElementById('count-codet').innerText = count.toLocaleString() + " 명";
         }
 
-        // 코뎃 게임즈(업소드) 회원수 조회
         async function fetchGameStats() {
             try {
-                // 게임즈 사이트의 프로필 테이블 조회 (테이블명이 profiles라고 가정)
                 const { count, error } = await _games.from('profiles').select('*', { count: 'exact', head: true });
                 if (error) throw error;
-                document.getElementById('count-games').innerText = count.toLocaleString();
+                document.getElementById('count-games').innerText = count.toLocaleString() + " 명";
             } catch (e) {
-                console.error("게임즈 데이터 로드 실패:", e.message);
-                document.getElementById('count-games').innerText = "ERR";
+                document.getElementById('count-games').innerText = "연결 오류";
+            }
+        }
+
+        // 마지막 로그인 또는 활동 히스토리 하나만 가져오기
+        async function fetchRecentHistory() {
+            try {
+                // 'profiles' 테이블에서 가장 최근에 업데이트된 사용자 1명 가져오기
+                const { data, error } = await _codet
+                    .from('profiles')
+                    .select('email, updated_at')
+                    .order('updated_at', { ascending: false })
+                    .limit(1);
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    const lastUser = data[0];
+                    const date = new Date(lastUser.updated_at).toLocaleString('ko-KR');
+                    document.getElementById('recent-history').innerText = 
+                        `마지막 활동: ${lastUser.email}님이 ${date}에 접속하거나 정보를 수정했습니다.`;
+                } else {
+                    document.getElementById('recent-history').innerText = "기록된 활동이 없습니다.";
+                }
+            } catch (e) {
+                document.getElementById('recent-history').innerText = "히스토리 로드 실패";
             }
         }
 
