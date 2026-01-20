@@ -3,133 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>코뎃 게임즈 관리 - 전체화면</title>
+    <title>codetbase 통합 관리자</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #4dabf7; --bg: #f8f9fa; --success: #28a745; --danger: #dc3545; }
-        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--bg); color: #333; }
+        :root { --primary: #4dabf7; --bg: #f8f9fa; --sidebar: #1a1d21; }
+        body { display: flex; margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); color: #333; }
         
-        /* 상단 뒤로가기 바 */
-        .top-nav { 
-            background: #1a1d21; color: white; padding: 12px 25px; 
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100;
-        }
-        .back-btn { 
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
-            color: white; padding: 7px 15px; border-radius: 6px; cursor: pointer; font-size: 13px;
-            transition: 0.2s; display: flex; align-items: center; gap: 8px;
-        }
-        .back-btn:hover { background: rgba(255,255,255,0.2); }
+        /* 사이드바 */
+        nav { width: 260px; height: 100vh; background: var(--sidebar); color: white; padding: 25px; position: fixed; box-sizing: border-box; }
+        nav h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; cursor: pointer; }
+        nav ul { list-style: none; padding: 0; }
+        nav ul li { padding: 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; color: #adb5bd; margin-bottom: 5px; }
+        nav ul li:hover { background: rgba(255,255,255,0.1); color: white; }
+        nav ul li.active { background: var(--primary); color: white; font-weight: bold; }
+        
+        /* 메인 영역 */
+        main { margin-left: 260px; padding: 40px; width: 100%; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .user-pill { background: #e9ecef; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+        
+        /* 카드 디자인 유지 */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card h3 { margin: 0; font-size: 14px; color: #868e96; }
+        .card .value { font-size: 32px; font-weight: 800; margin: 15px 0 5px; color: #212529; }
 
-        /* 메인 컨텐츠 (왼쪽 여백 삭제) */
-        main { padding: 30px; max-width: 1200px; margin: 0 auto; }
-        .section-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f3f5; padding: 12px; text-align: left; font-size: 13px; }
-        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-        
-        input { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 100%; box-sizing: border-box; }
-        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-save { background: var(--primary); color: white; }
-        .btn-add { background: #e67e22; color: white; }
-        
-        .tab-menu { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; background: #e9ecef; border-radius: 8px; cursor: pointer; border: none; font-weight: bold; }
-        .tab-btn.active { background: var(--primary); color: white; }
+        /* 게임 관리용 스타일 */
+        iframe { width: 100%; height: 80vh; border: none; border-radius: 15px; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+
+        button.logout { background: #ff6b6b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: auto; }
     </style>
 </head>
 <body>
+    <nav>
+        <h2 onclick="showContent('dash')">codetbase</h2>
+        <ul>
+            <li id="menu-dash" class="active" onclick="showContent('dash')">📊 통합 대시보드</li>
+            <li id="menu-game" onclick="showContent('game')">🎮 코뎃 게임즈 관리</li>
+            <li onclick="alert('준비 중입니다.')">👥 사용자 관리</li>
+        </ul>
+        <div style="position: absolute; bottom: 25px; width: 210px;">
+            <button class="logout" onclick="signOut()">로그아웃</button>
+        </div>
+    </nav>
 
-    <div class="top-nav">
-        <button class="back-btn" onclick="location.href='index.html'">
-            <i class="fas fa-arrow-left"></i> 대시보드로 돌아가기
-        </button>
-        <span style="font-size: 14px; font-weight: bold; color: var(--primary);">codetbase 게임 관리 시스템</span>
-    </div>
-
-    <main>
-        <div class="header-flex">
-            <h1>🎮 게임 통합 설정</h1>
-            <button class="btn btn-save" onclick="saveAllData()">모든 데이터 저장</button>
+    <main id="main-area">
+        <div id="content-dash">
+            <div class="header">
+                <h1>통합 관제 대시보드</h1>
+                <div class="user-pill" id="user-info">접속 중...</div>
+            </div>
+            <div class="card-grid">
+                <div class="card"><h3>메인 사용자</h3><div class="value" id="count-codet">0 명</div></div>
+                <div class="card"><h3>게임즈 사용자</h3><div class="value" id="count-games">0 명</div></div>
+                <div class="card"><h3>보안 현황</h3><div class="value" style="color:#2b8a3e">정상</div></div>
+            </div>
+            <div id="recent-history" style="margin-top:20px; font-size:14px; color:#666;"></div>
         </div>
 
-        <div class="tab-menu">
-            <button class="tab-btn active" onclick="switchTab('sword')">⚔️ 검 데이터</button>
-            <button class="tab-btn" onclick="switchTab('code')">🎁 보상 코드</button>
-            <button class="tab-btn" onclick="switchTab('user')">👥 유저 관리</button>
-        </div>
-
-        <div id="tab-sword" class="section-card">
-            <div class="header-flex"><h3>강화 트리 설정</h3><button class="btn btn-add" onclick="addSword()">+ 추가</button></div>
-            <table id="sword-table">
-                <thead><tr><th width="50">Lv</th><th>이름</th><th>강화비</th><th>확률</th><th>삭제</th></tr></thead>
-                <tbody id="sword-body"></tbody>
-            </table>
-        </div>
-
-        <div id="tab-code" class="section-card" style="display:none;">
-            <div class="header-flex"><h3>쿠폰 코드 발급</h3><button class="btn btn-add" onclick="addCode()">+ 신규</button></div>
-            <table>
-                <thead><tr><th>코드</th><th>골드</th><th>수량</th><th>제한</th><th>삭제</th></tr></thead>
-                <tbody id="code-body"></tbody>
-            </table>
-        </div>
-
-        <div id="tab-user" class="section-card" style="display:none;">
-            <h3>유저 실시간 관리</h3>
-            <table style="margin-top:15px;">
-                <thead><tr><th>닉네임</th><th>골드</th><th>상태</th><th>작업</th></tr></thead>
-                <tbody id="user-body"></tbody>
-            </table>
+        <div id="content-game" style="display:none;">
+            <div class="header">
+                <h1>코뎃 게임즈 실시간 관리</h1>
+                <button class="user-pill" onclick="showContent('dash')">대시보드로 돌아가기</button>
+            </div>
+            <iframe src="game.html" id="game-frame"></iframe>
         </div>
     </main>
 
     <script>
+        const CODET_URL = "https://vmchoitkohbmbrsrnogo.supabase.co";
+        const CODET_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtY2hvaXRrb2hibWJyc3Jub2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MjgxNTIsImV4cCI6MjA4MzUwNDE1Mn0.JYUwOlZgB3KzLArnwjrY_EMFA2UFGSOTtUFRdGwVUN8";
+        const _codet = supabase.createClient(CODET_URL, CODET_KEY);
+        
         const GAME_URL = "https://utfrjzcnefsbuadnkdud.supabase.co";
         const GAME_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0ZnJqemNuZWZzYnVhZG5rZHVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4MjE1MTYsImV4cCI6MjA4MjM5NzUxNn0.D3Za1nMw-x0JwOpkFuYceUHlagcpRdrpFqNUIP5Kjdc";
-        const _gameClient = supabase.createClient(GAME_URL, GAME_KEY);
+        const _games = supabase.createClient(GAME_URL, GAME_KEY);
 
-        let swordData = [], codeData = [], userData = [];
-
-        async function load() {
-            const { data: s } = await _gameClient.from('sword_data').select('*').order('level');
-            const { data: c } = await _gameClient.from('reward_codes').select('*');
-            const { data: u } = await _gameClient.from('profiles').select('*').limit(20);
-            swordData = s || []; codeData = c || []; userData = u || [];
-            render();
+        async function init() {
+            const { data: { session } } = await _codet.auth.getSession();
+            if (!session) return location.replace('login.html');
+            document.getElementById('user-info').innerText = session.user.email;
+            loadStats();
         }
 
-        function render() {
-            document.getElementById('sword-body').innerHTML = swordData.map((s, i) => `
-                <tr>
-                    <td>${s.level}</td>
-                    <td><input type="text" value="${s.name}" onchange="swordData[${i}].name=this.value"></td>
-                    <td><input type="number" value="${s.upgrade_cost}" onchange="swordData[${i}].upgrade_cost=this.value"></td>
-                    <td><input type="number" step="0.1" value="${s.success_rate}" onchange="swordData[${i}].success_rate=this.value"></td>
-                    <td><button onclick="swordData.splice(${i},1);render()">X</button></td>
-                </tr>
-            `).join('');
-            
-            // 코드 및 유저 렌더링 생략 (기존 로직과 동일)
+        async function loadStats() {
+            const { count: c1 } = await _codet.from('profiles').select('*', { count: 'exact', head: true });
+            const { count: c2 } = await _games.from('profiles').select('*', { count: 'exact', head: true });
+            document.getElementById('count-codet').innerText = (c1 || 0) + " 명";
+            document.getElementById('count-games').innerText = (c2 || 0) + " 명";
         }
 
-        function switchTab(t) {
-            document.querySelectorAll('.section-card').forEach(s => s.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-'+t).style.display = 'block';
-            event.target.classList.add('active');
+        // 화면 전환 함수
+        function showContent(type) {
+            const dash = document.getElementById('content-dash');
+            const game = document.getElementById('content-game');
+            const menuDash = document.getElementById('menu-dash');
+            const menuGame = document.getElementById('menu-game');
+
+            if(type === 'dash') {
+                dash.style.display = 'block';
+                game.style.display = 'none';
+                menuDash.classList.add('active');
+                menuGame.classList.remove('active');
+            } else {
+                dash.style.display = 'none';
+                game.style.display = 'block';
+                menuDash.classList.remove('active');
+                menuGame.classList.add('active');
+                // 페이지를 새로고침해서 최신 데이터 반영
+                document.getElementById('game-frame').contentWindow.location.reload();
+            }
         }
 
-        async function saveAllData() {
-            // 저장 로직 (이전 제공 코드와 동일)
-            alert("저장되었습니다.");
+        async function signOut() {
+            await _codet.auth.signOut();
+            location.replace('login.html');
         }
 
-        load();
+        init();
     </script>
 </body>
 </html>
