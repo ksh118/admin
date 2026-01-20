@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>codetbase Admin - 로그인</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
+        .login-card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>codetbase Admin</h2>
+        <input type="email" id="email" placeholder="이메일">
+        <input type="password" id="password" placeholder="비밀번호">
+        <button onclick="signIn()">로그인</button>
+        <p id="msg" style="color:red; font-size:12px;"></p>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://vmchoitkohbmbrsrnogo.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtY2hvaXRrb2hibWJyc3Jub2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MjgxNTIsImV4cCI6MjA4MzUwNDE1Mn0.JYUwOlZgB3KzLArnwjrY_EMFA2UFGSOTtUFRdGwVUN8";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                document.getElementById('msg').innerText = error.message;
+            } else {
+                location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
