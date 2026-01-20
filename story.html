@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>활동 히스토리 - codetbase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background: #f8f9fa; padding: 40px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        h1 { font-size: 24px; color: #1a1d21; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: #f1f3f5; color: #495057; }
+        .back-btn { text-decoration: none; color: #4dabf7; font-weight: bold; margin-bottom: 20px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">< 뒤로 가기</a>
+        <h1>전체 활동 히스토리</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>이메일(아이디)</th>
+                    <th>최근 활동 시간</th>
+                </tr>
+            </thead>
+            <tbody id="history-list">
+                <tr><td colspan="2">로딩 중...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const CODET_URL = "https://vmchoitkohbmbrsrnogo.supabase.co";
+        const CODET_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtY2hvaXRrb2hibWJyc3Jub2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MjgxNTIsImV4cCI6MjA4MzUwNDE1Mn0.JYUwOlZgB3KzLArnwjrY_EMFA2UFGSOTtUFRdGwVUN8";
+        const _codet = supabase.createClient(CODET_URL, CODET_KEY);
+
+        async function loadAllHistory() {
+            const { data, error } = await _codet
+                .from('profiles')
+                .select('email, updated_at')
+                .order('updated_at', { ascending: false });
+
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+
+            if (data) {
+                data.forEach(item => {
+                    const row = `<tr>
+                        <td>${item.email}</td>
+                        <td>${new Date(item.updated_at).toLocaleString('ko-KR')}</td>
+                    </tr>`;
+                    list.innerHTML += row;
+                });
+            } else {
+                list.innerHTML = '<tr><td colspan="2">데이터가 없습니다.</td></tr>';
+            }
+        }
+        loadAllHistory();
+    </script>
+</body>
+</html>
