@@ -3,74 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>코뎃 게임즈 관리 - 전체화면</title>
+    <title>코뎃 게임즈 관리 - 통합 패널</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #4dabf7; --bg: #f8f9fa; }
-        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--bg); color: #333; }
+        :root { --primary: #4dabf7; --bg: #f8f9fa; --sidebar: #1a1d21; }
+        body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); color: #333; }
         
-        /* 상단 바 - 대시보드 느낌 유지 */
-        .top-bar { 
-            background: #1a1d21; 
-            color: white; 
-            padding: 15px 25px; 
-            display: flex; 
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        /* 왼쪽 위 뒤로가기 버튼 */
-        .back-btn { 
-            background: var(--primary); 
-            border: none; 
-            color: white; 
-            padding: 10px 18px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-        .back-btn:hover { background: #339af0; }
-
-        /* 메인 컨텐츠 - 왼쪽 여백 없이 전체 화면 사용 */
-        main { padding: 30px; max-width: 1400px; margin: 0 auto; }
+        .top-nav { background: #1a1d21; color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .back-btn { background: var(--primary); border: none; color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
-        .section-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f3f5; padding: 12px; text-align: left; font-size: 13px; }
-        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-        
-        input { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 100%; }
-        .btn-save { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        main { padding: 30px; max-width: 1200px; margin: 0 auto; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
         .tab-menu { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; background: #e9ecef; border-radius: 8px; cursor: pointer; border: none; font-weight: bold; }
+        .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; background: #e9ecef; font-weight: bold; }
         .tab-btn.active { background: var(--primary); color: white; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6; font-size: 13px; }
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 100%; box-sizing: border-box; }
+        
+        .save-btn { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .del-btn { background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <button class="back-btn" onclick="location.href='index.html'">
-            <i class="fas fa-arrow-left"></i> 대시보드로 돌아가기
-        </button>
-        <span style="margin-left: 20px; font-weight: bold; color: var(--primary);">codetbase 게임 관리 시스템</span>
+    <div class="top-nav">
+        <button class="back-btn" onclick="location.href='index.html'"><i class="fas fa-arrow-left"></i> 대시보드로 돌아가기</button>
+        <span style="font-weight: bold; color: var(--primary);">codetbase 게임 관리 패널</span>
     </div>
 
     <main>
-        <div class="header-flex">
-            <h1>🎮 게임 통합 관리</h1>
-            <button class="btn-save" onclick="saveAll()">모든 데이터 저장</button>
+        <div class="section-header">
+            <h1>🎮 게임 데이터 설정</h1>
+            <button class="save-btn" id="save-all-btn" onclick="saveAll()">모든 데이터 저장</button>
         </div>
 
         <div class="tab-menu">
@@ -79,51 +49,105 @@
             <button class="tab-btn" onclick="switchTab('user')">👥 유저 관리</button>
         </div>
 
-        <div id="tab-sword" class="section-card">
-            <h3>강화 아이템 설정</h3>
-            <table id="sword-table">
-                <thead><tr><th width="50">Lv</th><th>이름</th><th>강화비용</th><th>성공확률</th></tr></thead>
-                <tbody id="sword-body"></tbody>
+        <div id="tab-sword" class="card">
+            <div class="section-header"><h3>검 강화 트리</h3><button onclick="addSword()">+ 추가</button></div>
+            <table>
+                <thead><tr><th width="60">레벨</th><th>이름</th><th>강화비용</th><th>성공확률</th><th width="60">삭제</th></tr></thead>
+                <tbody id="sword-list"></tbody>
             </table>
         </div>
 
-        <div id="tab-code" class="section-card" style="display:none;">
-            <h3>보상 코드 관리</h3>
-            <table id="code-table">
-                <thead><tr><th>코드</th><th>지급 골드</th><th>사용 가능 횟수</th></tr></thead>
-                <tbody id="code-body"></tbody>
+        <div id="tab-code" class="card" style="display:none;">
+            <div class="section-header"><h3>쿠폰 코드 관리</h3><button onclick="addCode()">+ 신규</button></div>
+            <table>
+                <thead><tr><th>코드</th><th>지급 골드</th><th>제한 수량</th><th width="60">삭제</th></tr></thead>
+                <tbody id="code-list"></tbody>
             </table>
         </div>
 
-        <div id="tab-user" class="section-card" style="display:none;">
-            <h3>실시간 유저 상태</h3>
-            <table id="user-table">
-                <thead><tr><th>닉네임</th><th>골드</th><th>상태</th></tr></thead>
-                <tbody id="user-body"></tbody>
+        <div id="tab-user" class="card" style="display:none;">
+            <h3>실시간 유저 목록 (최근 50명)</h3>
+            <table>
+                <thead><tr><th>닉네임</th><th>골드</th><th>상태</th><th>작업</th></tr></thead>
+                <tbody id="user-list"></tbody>
             </table>
         </div>
     </main>
 
     <script>
-        // 기존 admin (3).html 및 gm (1).html의 Supabase 로직을 그대로 사용합니다.
         const GAME_URL = "https://utfrjzcnefsbuadnkdud.supabase.co";
         const GAME_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0ZnJqemNuZWZzYnVhZG5rZHVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4MjE1MTYsImV4cCI6MjA4MjM5NzUxNn0.D3Za1nMw-x0JwOpkFuYceUHlagcpRdrpFqNUIP5Kjdc";
-        const _client = supabase.createClient(GAME_URL, GAME_KEY);
+        const _game = supabase.createClient(GAME_URL, GAME_KEY);
+
+        let swordData = [], codeData = [], userData = [];
 
         async function load() {
-            // 데이터 로드 및 렌더링 로직 (생략 - 기존 관리자 기능 유지)
-            console.log("데이터 로드 중...");
+            const { data: s } = await _game.from('sword_data').select('*').order('level');
+            const { data: c } = await _game.from('reward_codes').select('*');
+            const { data: u } = await _game.from('profiles').select('*').order('updated_at', { ascending: false }).limit(50);
+            
+            swordData = s || []; codeData = c || []; userData = u || [];
+            render();
         }
 
-        function switchTab(t) {
-            document.querySelectorAll('.section-card').forEach(s => s.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-'+t).style.display = 'block';
-            event.target.classList.add('active');
+        function render() {
+            // 검 데이터 렌더링
+            document.getElementById('sword-list').innerHTML = swordData.map((s, i) => `
+                <tr>
+                    <td>${s.level}</td>
+                    <td><input type="text" value="${s.name}" onchange="swordData[${i}].name=this.value"></td>
+                    <td><input type="number" value="${s.upgrade_cost}" onchange="swordData[${i}].upgrade_cost=Number(this.value)"></td>
+                    <td><input type="number" step="0.01" value="${s.success_rate}" onchange="swordData[${i}].success_rate=Number(this.value)"></td>
+                    <td><button class="del-btn" onclick="swordData.splice(${i},1);render()">X</button></td>
+                </tr>`).join('');
+
+            // 코드 데이터 렌더링
+            document.getElementById('code-list').innerHTML = codeData.map((c, i) => `
+                <tr>
+                    <td><input type="text" value="${c.code}" onchange="codeData[${i}].code=this.value"></td>
+                    <td><input type="number" value="${c.reward_gold}" onchange="codeData[${i}].reward_gold=Number(this.value)"></td>
+                    <td><input type="number" value="${c.max_uses}" onchange="codeData[${i}].max_uses=Number(this.value)"></td>
+                    <td><button class="del-btn" onclick="codeData.splice(${i},1);render()">X</button></td>
+                </tr>`).join('');
+
+            // 유저 데이터 렌더링
+            document.getElementById('user-list').innerHTML = userData.map((u, i) => `
+                <tr>
+                    <td>${u.nickname || '익명'}</td>
+                    <td><input type="number" value="${u.gold}" onchange="userData[${i}].gold=Number(this.value)"></td>
+                    <td>${u.is_banned ? '🚫 차단됨' : '✅ 정상'}</td>
+                    <td><button onclick="toggleBan(${i})">${u.is_banned ? '해제' : '차단'}</button></td>
+                </tr>`).join('');
         }
+
+        function switchTab(tab) {
+            document.getElementById('tab-sword').style.display = tab === 'sword' ? 'block' : 'none';
+            document.getElementById('tab-code').style.display = tab === 'code' ? 'block' : 'none';
+            document.getElementById('tab-user').style.display = tab === 'user' ? 'block' : 'none';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.innerText.includes(tab==='sword'?'검':tab==='code'?'보상':'유저')));
+        }
+
+        function addSword() { swordData.push({ level: swordData.length+1, name: '새 검', upgrade_cost: 1000, success_rate: 0.5 }); render(); }
+        function addCode() { codeData.push({ code: 'NEWCODE', reward_gold: 5000, max_uses: 100 }); render(); }
+        function toggleBan(i) { userData[i].is_banned = !userData[i].is_banned; render(); }
 
         async function saveAll() {
-            alert("변경사항이 저장되었습니다.");
+            const btn = document.getElementById('save-all-btn');
+            btn.innerText = "저장 중..."; btn.disabled = true;
+            try {
+                // 1. 검 데이터 초기화 후 재생성 (관리자 코드 방식)
+                await _game.from('sword_data').delete().neq('level', -1);
+                await _game.from('sword_data').insert(swordData);
+
+                // 2. 유저 데이터 업데이트
+                for(let u of userData) {
+                    await _game.from('profiles').update({ gold: u.gold, is_banned: u.is_banned }).eq('id', u.id);
+                }
+                
+                alert("성공적으로 저장되었습니다!");
+            } catch(e) { alert("오류 발생: " + e.message); }
+            btn.innerText = "모든 데이터 저장"; btn.disabled = false;
+            load();
         }
 
         load();
