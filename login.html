@@ -5,50 +5,35 @@
     <title>codetbase Admin - 로그인</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Pretendard', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
-        .login-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); width: 100%; max-width: 380px; text-align: center; }
-        h2 { color: #1c7ed6; margin-bottom: 1.5rem; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #dee2e6; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #1c7ed6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        button:hover { background: #1864ab; }
-        
-        /* 긴급 관리 버튼 */
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin: 0; }
+        .login-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #1c7ed6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .admin-trigger { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #ced4da; cursor: pointer; border: none; background: none; }
-        
-        /* 관리자 모달 */
-        #admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; padding: 25px; border-radius: 10px; width: 320px; }
-        .modal-content h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
-        .btn-sm { font-size: 12px; padding: 8px; flex: 1; }
-        .btn-del { background: #fa5252; }
+        #admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 300px; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
         <h2>codetbase Admin</h2>
-        <input type="email" id="email" placeholder="관리자 이메일">
+        <input type="text" id="username" placeholder="관리자 아이디">
         <input type="password" id="password" placeholder="비밀번호">
         <button onclick="signIn()">로그인</button>
-        <p id="msg" style="color: #fa5252; font-size: 13px; margin-top: 15px;"></p>
+        <p id="msg" style="color:red; font-size:12px;"></p>
     </div>
 
     <button class="admin-trigger" onclick="openAdmin()">Admin Tools</button>
 
     <div id="admin-modal">
         <div class="modal-content">
-            <h3>🛠 계정 긴급 관리</h3>
-            <input type="email" id="target-email" placeholder="대상 이메일">
-            <input type="password" id="target-pw" placeholder="비밀번호 (생성/변경용)">
-            
-            <div class="btn-group">
-                <button class="btn-sm" onclick="manageUser('signup')">신규 생성</button>
-                <button class="btn-sm" onclick="manageUser('update')">비번 변경</button>
-            </div>
-            <button class="btn-sm btn-del" onclick="manageUser('delete')" style="margin-top:5px;">계정 삭제 안내</button>
-            <button class="btn-sm" onclick="closeAdmin()" style="background:#868e96; margin-top:10px;">닫기</button>
-            <p id="admin-msg" style="font-size: 11px; margin-top: 10px;"></p>
+            <h3>🛠 계정 관리</h3>
+            <input type="text" id="target-user" placeholder="아이디">
+            <input type="password" id="target-pw" placeholder="비번">
+            <button onclick="manageUser('signup')" style="background: #40c057; margin-bottom:5px;">아이디 생성</button>
+            <button onclick="closeAdmin()" style="background: #868e96;">닫기</button>
+            <p id="admin-msg" style="font-size: 11px;"></p>
         </div>
     </div>
 
@@ -58,46 +43,30 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function signIn() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) document.getElementById('msg').innerText = "로그인 실패: " + error.message;
+            let user = document.getElementById('username').value;
+            const pw = document.getElementById('password').value;
+            
+            // 아이디를 이메일 형식으로 변환 (@가 없을 때만)
+            if (!user.includes('@')) user += "@codetbase.com";
+
+            const { data, error } = await _supabase.auth.signInWithPassword({ email: user, password: pw });
+            if (error) document.getElementById('msg').innerText = "실패: " + error.message;
             else location.href = 'index.html';
         }
 
-        function openAdmin() {
-            const pw = prompt("관리자 인증 번호를 입력하세요.");
-            if (pw === "0118") {
-                document.getElementById('admin-modal').style.display = 'flex';
-            } else {
-                alert("인증 실패");
-            }
-        }
-
-        function closeAdmin() {
-            document.getElementById('admin-modal').style.display = 'none';
-        }
-
         async function manageUser(type) {
-            const email = document.getElementById('target-email').value;
-            const password = document.getElementById('target-pw').value;
-            const msgArea = document.getElementById('admin-msg');
-            
-            if (!email) return alert("이메일을 입력하세요.");
+            let user = document.getElementById('target-user').value;
+            const pw = document.getElementById('target-pw').value;
+            if (!user.includes('@')) user += "@codetbase.com";
 
-            if (type === 'signup') {
-                const { error } = await _supabase.auth.signUp({ email, password });
-                msgArea.innerText = error ? error.message : "계정 생성 성공! 이메일을 확인하거나 즉시 로그인해보세요.";
-            } 
-            else if (type === 'update') {
-                // 로그인된 상태여야 변경 가능하므로, 먼저 해당 계정으로 임시 로그인 시도 후 변경
-                const { error } = await _supabase.auth.updateUser({ password: password });
-                msgArea.innerText = error ? "로그인 상태에서만 변경 가능합니다." : "비밀번호 변경 완료";
-            }
-            else if (type === 'delete') {
-                alert("보안상 계정 삭제는 Supabase 대시보드(Authentication > Users)에서 직접 'Delete User'를 누르는 것이 가장 확실합니다.");
-            }
+            const { error } = await _supabase.auth.signUp({ email: user, password: pw });
+            document.getElementById('admin-msg').innerText = error ? error.message : "성공! 이제 로그인하세요.";
         }
+
+        function openAdmin() {
+            if (prompt("인증번호?") === "0118") document.getElementById('admin-modal').style.display = 'flex';
+        }
+        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
     </script>
 </body>
 </html>
